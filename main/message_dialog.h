@@ -23,6 +23,7 @@ void render_base_screen_statusbar(pax_buf_t* buffer, gui_theme_t* theme, bool ba
 
 void message_dialog(pax_buf_t* icon, const char* title, const char* message, const char* action_text);
 void busy_dialog(pax_buf_t* icon, const char* title, const char* message, bool header);
+void startup_dialog(const char* message);
 
 bsp_input_navigation_key_t adv_dialog(pax_buf_t* icon, const char* title, const char* message,
                                       gui_element_icontext_t* headers, int header_count);
@@ -31,8 +32,7 @@ message_dialog_return_type_t adv_dialog_ok(pax_buf_t* icon, const char* title, c
 message_dialog_return_type_t adv_dialog_yes_no(pax_buf_t* icon, const char* title, const char* message);
 message_dialog_return_type_t adv_dialog_yes_no_cancel(pax_buf_t* icon, const char* title, const char* message);
 
-#if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL) || \
-    defined(CONFIG_BSP_TARGET_HACKERHOTEL_2026)
+#if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL)
 #define ADV_DIALOG_FOOTER_OK ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "/"}, {get_icon(ICON_F1), "OK"}}), 2
 #define ADV_DIALOG_FOOTER_GOBACK \
     ((gui_element_icontext_t[]){{get_icon(ICON_ESC), "/"}, {get_icon(ICON_F1), "Go back"}}), 2

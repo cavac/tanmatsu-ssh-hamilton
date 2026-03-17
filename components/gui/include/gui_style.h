@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include "pax_types.h"
 
 typedef struct {
@@ -40,14 +41,30 @@ typedef struct {
 } gui_element_style_t;
 
 typedef struct {
+    // Marigns
+    int vertical_margin;
+    int horizontal_margin;
+
+    // Padding
+    int vertical_padding;
+    int horizontal_padding;
+
+    // Colors
+    gui_palette_t palette;
+} gui_progressbar_style_t;
+
+typedef struct {
     bool visible;
     int  width;
 } gui_scrollbar_style_t;
 
 typedef struct {
-    gui_palette_t         palette;  // General color palette
-    gui_element_style_t   footer;
-    gui_element_style_t   header;
-    gui_element_style_t   menu;
-    gui_scrollbar_style_t scrollbar;
+    gui_palette_t           palette;  // General color palette
+    gui_element_style_t     footer;
+    gui_element_style_t     header;
+    gui_element_style_t     menu;
+    gui_scrollbar_style_t   scrollbar;
+    gui_progressbar_style_t progressbar;
+    gui_element_style_t     chat;
+    bool                    show_clock;
 } gui_theme_t;

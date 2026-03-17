@@ -1,9 +1,0 @@
-idf_component_register(
-	SRCS
-		timezone.c
-		database.c
-	INCLUDE_DIRS
-		"include"
-	PRIV_REQUIRES
-		nvs_flash
-)

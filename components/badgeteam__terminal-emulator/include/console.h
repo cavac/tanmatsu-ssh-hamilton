@@ -126,6 +126,7 @@ enum console_csi_terminators_e
 enum console_csi_sgr_codes_e
 {
   CONS_CSI_SGR_RESET         = 0,
+  CONS_CSI_SGR_SET_BOLD      = 1,
   CONS_CSI_SGR_SET_FG        = 38,
   CONS_CSI_SGR_SET_BG        = 48,
 

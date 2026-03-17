@@ -11,7 +11,7 @@
 #include "sdkconfig.h"
 
 #if defined(CONFIG_BSP_TARGET_TANMATSU) || defined(CONFIG_BSP_TARGET_KONSOOL) || \
-    defined(CONFIG_BSP_TARGET_HACKERHOTEL_2026) || defined(CONFIG_BSP_TARGET_ESP32_P4_FUNCTION_EV_BOARD)
+    defined(CONFIG_BSP_TARGET_ESP32_P4_FUNCTION_EV_BOARD)
 #define DSI_PANEL
 #endif
 
@@ -25,20 +25,16 @@ static lcd_color_rgb_pixel_format_t display_color_format = LCD_COLOR_PIXEL_FORMA
 static lcd_rgb_data_endian_t        display_data_endian  = LCD_RGB_DATA_ENDIAN_LITTLE;
 static pax_buf_t                    fb                   = {0};
 
-#if defined(CONFIG_BSP_TARGET_KAMI) || defined(CONFIG_BSP_TARGET_HACKERHOTEL_2024)
+#if defined(CONFIG_BSP_TARGET_KAMI)
 static pax_col_t palette[] = {0xffffffff, 0xff000000, 0xffff0000};  // white, black, red
 #endif
 
-#if CONFIG_IDF_TARGET_ESP32P4
-// Display framebuffer returned by `asp_disp_get_fb`.
-extern uint8_t*   asp_disp_fb;
-// PAX buffer returned by `asp_disp_get_pax_buf`.
-extern pax_buf_t* asp_disp_pax_buf;
-#endif
-
-void display_init(void) {
-    ESP_ERROR_CHECK(
-        bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format, &display_data_endian));
+esp_err_t display_init(void) {
+    esp_err_t res =
+        bsp_display_get_parameters(&display_h_res, &display_v_res, &display_color_format, &display_data_endian);
+    if (res != ESP_OK) {
+        return res;
+    }
 
     pax_buf_type_t format = PAX_BUF_24_888RGB;
 
@@ -53,14 +49,14 @@ void display_init(void) {
             break;
     }
 
-#if defined(CONFIG_BSP_TARGET_KAMI) || defined(CONFIG_BSP_TARGET_HACKERHOTEL_2024)
+#if defined(CONFIG_BSP_TARGET_KAMI)
     format = PAX_BUF_2_PAL;
 #endif
 
     pax_buf_init(&fb, NULL, display_h_res, display_v_res, format);
     pax_buf_reversed(&fb, display_data_endian == LCD_RGB_DATA_ENDIAN_BIG);
 
-#if defined(CONFIG_BSP_TARGET_KAMI) || defined(CONFIG_BSP_TARGET_HACKERHOTEL_2024)
+#if defined(CONFIG_BSP_TARGET_KAMI)
     fb.palette      = palette;
     fb.palette_size = sizeof(palette) / sizeof(pax_col_t);
 #endif
@@ -84,10 +80,7 @@ void display_init(void) {
     }
     pax_buf_set_orientation(&fb, orientation);
 
-#if CONFIG_IDF_TARGET_ESP32P4
-    asp_disp_fb      = pax_buf_get_pixels_rw(&fb);
-    asp_disp_pax_buf = &fb;
-#endif
+    return ESP_OK;
 }
 
 pax_buf_t* display_get_buffer(void) {
@@ -102,4 +95,16 @@ void display_blit_buffer(pax_buf_t* fb) {
 
 void display_blit(void) {
     display_blit_buffer(&fb);
+}
+
+bool display_is_initialized(void) {
+    return pax_buf_get_width(&fb) > 0;
+}
+
+bool display_is_epaper(void) {
+#if defined(CONFIG_BSP_TARGET_KAMI)
+    return true;
+#else
+    return false;
+#endif
 }

@@ -87,7 +87,10 @@ void menu_ssh(pax_buf_t* buffer, gui_theme_t* theme) {
     char message_buffer[256] = {0};
     QueueHandle_t input_event_queue   = NULL;
     ESP_ERROR_CHECK(bsp_input_get_queue(&input_event_queue));
-    ssh_settings_t settings;
+    uint8_t index;
+    ssh_settings_t settings = {0};
+    bsp_input_event_t event;
+    message_dialog_return_type_t msg_ret;
 
     int header_height = theme->header.height + (theme->header.vertical_margin * 2);
     int footer_height = theme->footer.height + (theme->footer.vertical_margin * 2);
@@ -106,13 +109,13 @@ void menu_ssh(pax_buf_t* buffer, gui_theme_t* theme) {
     render(buffer, theme, &menu, position, false, true, true, false);
     ESP_LOGI(TAG, "  populating menu");
     populate_menu_from_ssh_entries(&menu);
+    ESP_LOGI(TAG, "  menu populated!");
 
     //bool prev_connected = false;
     //bool connected      = update_connected((uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu)));
     render(buffer, theme, &menu, position, false, true, false, false);
 
     while (1) {
-        bsp_input_event_t event;
         if (xQueueReceive(input_event_queue, &event, pdMS_TO_TICKS(1000)) == pdTRUE) {
             switch (event.type) {
                 case INPUT_EVENT_TYPE_NAVIGATION:
@@ -131,15 +134,14 @@ void menu_ssh(pax_buf_t* buffer, gui_theme_t* theme) {
                                 break;
                             case BSP_INPUT_NAVIGATION_KEY_F4:
                                 if (menu_find_item(&menu, 0) != NULL) {
-                                    uint8_t index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
+                                    index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
                                     menu_ssh_edit(buffer, theme, index, false);
                                     render(buffer, theme, &menu, position, false, false, true, false);
                                 }
 				break;
                             case BSP_INPUT_NAVIGATION_KEY_F5:
                             case BSP_INPUT_NAVIGATION_KEY_SELECT:
-                                uint8_t index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
-                                ssh_settings_t settings = {0};
+                                index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
                                 if (ssh_settings_get(index, &settings) == ESP_OK) {
                                     snprintf(message_buffer, sizeof(message_buffer),
                                              "Do you really want to delete SSH connection %s?", settings.connection_name);
@@ -147,8 +149,7 @@ void menu_ssh(pax_buf_t* buffer, gui_theme_t* theme) {
                                     snprintf(message_buffer, sizeof(message_buffer),
                                              "Do you really want to delete this connection?");
                                 }
-                                message_dialog_return_type_t msg_ret =
-                                    adv_dialog_yes_no(get_icon(ICON_HELP), "Delete SSH connection", message_buffer);
+                                msg_ret = adv_dialog_yes_no(get_icon(ICON_HELP), "Delete SSH connection", message_buffer);
                                 if (msg_ret == MSG_DIALOG_RETURN_OK) {
                                     ssh_settings_erase(index);
                                 }
@@ -166,9 +167,9 @@ void menu_ssh(pax_buf_t* buffer, gui_theme_t* theme) {
                             case BSP_INPUT_NAVIGATION_KEY_JOYSTICK_PRESS:
 				// launch an ssh session using the selected connection details
                                 if (menu_find_item(&menu, 0) != NULL) {
-                                    uint8_t index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
+                                    index = (uint32_t)menu_get_callback_args(&menu, menu_get_position(&menu));
 				    ssh_settings_get(index, &settings);
-				    util_ssh(buffer, theme, &settings);
+				    util_ssh(buffer, theme, &settings, index);
                                     render(buffer, theme, &menu, position, false, false, false, false);
                                 }
                                 break;

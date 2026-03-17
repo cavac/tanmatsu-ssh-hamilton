@@ -56,6 +56,21 @@ static esp_err_t ssh_settings_set_parameter_u32(nvs_handle_t nvs_handle, uint8_t
     return nvs_set_u32(nvs_handle, nvs_key, value);
 }
 
+static esp_err_t ssh_settings_get_parameter_blob(nvs_handle_t nvs_handle, uint8_t index, const char* parameter,
+                                                  void* out_blob, size_t expected_length) {
+    char nvs_key[16];
+    ssh_settings_combine_key(index, parameter, nvs_key);
+    size_t size = expected_length;
+    return nvs_get_blob(nvs_handle, nvs_key, out_blob, &size);
+}
+
+static esp_err_t ssh_settings_set_parameter_blob(nvs_handle_t nvs_handle, uint8_t index, const char* parameter,
+                                                  const void* blob, size_t length) {
+    char nvs_key[16];
+    ssh_settings_combine_key(index, parameter, nvs_key);
+    return nvs_set_blob(nvs_handle, nvs_key, blob, length);
+}
+
 static esp_err_t _ssh_settings_get(nvs_handle_t nvs_handle, uint8_t index, ssh_settings_t* out_settings) {
     //ESP_LOGI(TAG, "_ssh_settings_get()");
     char buffer[128 + sizeof('\0')] = {0};
@@ -209,6 +224,8 @@ static esp_err_t _ssh_settings_erase(nvs_handle_t nvs_handle, uint8_t index) {
     nvs_erase_key(nvs_handle, nvs_key);
     ssh_settings_combine_key(index, "auth_mode", nvs_key);
     nvs_erase_key(nvs_handle, nvs_key);
+    ssh_settings_combine_key(index, "hk_sha256", nvs_key);
+    nvs_erase_key(nvs_handle, nvs_key);
     return ESP_OK;
 }
 
@@ -289,6 +306,37 @@ esp_err_t ssh_settings_erase(uint8_t index) {
         }
     }
 
+    res = nvs_commit(nvs_handle);
+    nvs_close(nvs_handle);
+    return res;
+}
+
+esp_err_t ssh_settings_get_host_key(uint8_t index, uint8_t out_sha256[32]) {
+    nvs_handle_t nvs_handle;
+    esp_err_t res = nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs_handle);
+    if (res != ESP_OK) return res;
+    res = ssh_settings_get_parameter_blob(nvs_handle, index, "hk_sha256", out_sha256, 32);
+    nvs_close(nvs_handle);
+    return res;
+}
+
+esp_err_t ssh_settings_set_host_key(uint8_t index, const uint8_t sha256[32]) {
+    nvs_handle_t nvs_handle;
+    esp_err_t res = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
+    if (res != ESP_OK) return res;
+    res = ssh_settings_set_parameter_blob(nvs_handle, index, "hk_sha256", sha256, 32);
+    if (res == ESP_OK) res = nvs_commit(nvs_handle);
+    nvs_close(nvs_handle);
+    return res;
+}
+
+esp_err_t ssh_settings_clear_host_key(uint8_t index) {
+    nvs_handle_t nvs_handle;
+    esp_err_t res = nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
+    if (res != ESP_OK) return res;
+    char nvs_key[16];
+    ssh_settings_combine_key(index, "hk_sha256", nvs_key);
+    nvs_erase_key(nvs_handle, nvs_key);
     res = nvs_commit(nvs_handle);
     nvs_close(nvs_handle);
     return res;

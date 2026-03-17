@@ -155,6 +155,7 @@ void console_escparse_csi_sgr(struct cons_insts_s *inst)
   int param3 = 0;
   int param4 = 0;
 
+  printf(">> console_escparse_csi_sgr()\n");
   int params = sscanf(inst->_esc_code_parsing.seq_buf, "%d;%d;%d;%d;%d",
                       &code, &param1, &param2, &param3, &param4);
 
@@ -162,6 +163,7 @@ void console_escparse_csi_sgr(struct cons_insts_s *inst)
 
   if (params == 0)
   {
+    printf(">>   resetting as no params\n");
     console_esc_reset(inst);
     return;
   }
@@ -172,14 +174,23 @@ void console_escparse_csi_sgr(struct cons_insts_s *inst)
   {
     case CONS_CSI_SGR_RESET:
     {
+      printf(">>   CONS_CSI_SGR_RESET\n");
       inst->fg = CONSOLE_DEFAULT_FG;
       inst->bg = CONSOLE_DEFAULT_BG;
+      break;
+    }
+
+    case CONS_CSI_SGR_SET_BOLD:
+    {
+      // TODO: set a flag to indicate bold enabled?
+      printf(">>   CONS_CSI_SGR_SET_BOLD\n");
       break;
     }
 
     case CONS_CSI_SGR_SET_FG:
     {
       /* RGB params */
+      printf(">>   CONS_CSI_SGR_SET_FG\n");
 
       if (param1 == 2)
       {
@@ -199,6 +210,7 @@ void console_escparse_csi_sgr(struct cons_insts_s *inst)
     case CONS_CSI_SGR_SET_BG:
     {
       /* RGB params */
+      printf(">>   CONS_CSI_SGR_SET_BG\n");
 
       if (param1 == 2)
       {
@@ -223,6 +235,7 @@ void console_escparse_csi_sgr(struct cons_insts_s *inst)
     default:
     {
       /* Set FG */
+      printf(">>   into default case\n");
 
       if (code >= CONS_ESC_SGR_FG_START && code <= CONS_ESC_SGR_FG_END)
       {
@@ -704,8 +717,8 @@ void console_escparse_csi_pbd(struct cons_insts_s *inst)
 void console_escparse_csi(struct cons_insts_s *inst, char c)
 {
   size_t index = inst->_esc_code_parsing.seq_buf_pos;
-  ESP_LOGI(CONS_TAG, "console_escparse_csi");
-  ESP_LOGI(CONS_TAG, "  index: %d", (int)index);
+  ESP_LOGI(CONS_TAG, ">> console_escparse_csi()");
+  //ESP_LOGI(CONS_TAG, "  index: %d", (int)index);
 
   // XXX right here - skip if pattern matches CSI ? \d+ l or h.
   //if (inst->_esc_code_parsing.seq_buf[index] == '?') {
@@ -723,90 +736,105 @@ void console_escparse_csi(struct cons_insts_s *inst, char c)
     {
       case CONS_CSI_CUP_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cup_term()");
         console_escparse_csi_cup(inst);
         return;
        }
 
       case CONS_CSI_ED_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_ed_term()");
         console_escparse_csi_ed(inst);
         return;
       }
 
       case CONS_CSI_EL_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_el_term()");
         console_escparse_csi_el(inst);
         return;
       }
 
       case CONS_CSI_DSR_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_dsr_term()");
         console_escparse_csi_dsr(inst);
         return;
       }
 
       case CONS_CSI_HVP_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_hvp_term()");
         console_escparse_csi_cup(inst);
         return;
       }
 
       case CONS_CSI_CHA_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cha_term()");
         console_escparse_csi_cha(inst);
         return;
       }
 
       case CONS_CSI_CUU_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cuu_term()");
         console_escparse_csi_cuu(inst);
         return;
       }
 
       case CONS_CSI_CUD_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cud_term()");
         console_escparse_csi_cud(inst);
         return;
       }
 
       case CONS_CSI_CUF_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cuf_term()");
         console_escparse_csi_cuf(inst);
         return;
       }
 
       case CONS_CSI_CUB_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cub_term()");
         console_escparse_csi_cub(inst);
         return;
       }
 
       case CONS_CSI_CNL_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cnl_term()");
         console_escparse_csi_cnl(inst);
         return;
       }
 
       case CONS_CSI_CPL_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_cpl_term()");
         console_escparse_csi_cpl(inst);
         return;
       }
 
       case CONS_CSI_SGR_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_sgr_term()");
         console_escparse_csi_sgr(inst);
         return;
       }
 
       case CONS_CSI_PBE_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_pbe_term()");
         console_escparse_csi_pbe(inst);
         return;
       }
 
       case CONS_CSI_PBD_TERM:
       {
+        ESP_LOGI(CONS_TAG, ">>   console_escparse_csi_pbd_term()");
         console_escparse_csi_pbd(inst);
         return;
       }
@@ -829,6 +857,7 @@ void console_escparse_csi(struct cons_insts_s *inst, char c)
 
   if (c < CONS_ESC_PARAM_RANGE_START || c > CONS_ESC_PARAM_RANGE_END)
   {
+    ESP_LOGI(CONS_TAG, ">>   ESC_PARAM_RANGE_START / END");
     /* Illegal parameter byte */
 
     /* End sequence */
@@ -841,8 +870,8 @@ void console_escparse_csi(struct cons_insts_s *inst, char c)
 
   /* Store character as param in sequence buffer */
 
+  ESP_LOGI(CONS_TAG, ">>   fell through");
   index = inst->_esc_code_parsing.seq_buf_pos++;
-  ESP_LOGI(CONS_TAG, "  seq_buf index %d", index);
   if (index >= sizeof(inst->_esc_code_parsing.seq_buf))
   {
     /* In case of overflow, reset parser */
@@ -854,7 +883,7 @@ void console_escparse_csi(struct cons_insts_s *inst, char c)
   }
 
   inst->_esc_code_parsing.seq_buf[index] = c;
-  ESP_LOGI(CONS_TAG, "  seq_buf[%d] = %c", index, c);
+  //ESP_LOGI(CONS_TAG, "  seq_buf[%d] = %c", index, c);
 }
 
 /* ASII escape code entry ****************************************************/
@@ -971,6 +1000,13 @@ int console_handle_special_char(struct cons_insts_s *inst, char *c)
       return 0;
     }
 
+    case '\x0c':
+    {
+      console_clear(inst);
+      console_set_cursor(inst, 0, 0);
+      return 0;
+    }
+
     default:
     {
       return 0;
@@ -1017,6 +1053,7 @@ void console_put(struct cons_insts_s *inst, char c)
 
   if (inst->_esc_code_parsing.esc_mode)
   {
+    //printf(">>>> esc_mode: %0x\n", c);
     console_esc_put(inst, c);
     return;
   }
