@@ -109,9 +109,10 @@ static void menu_populate(menu_t* menu, ssh_settings_t* settings) {
     //ESP_LOGI(TAG, "auth_mode: %s", temp);
     //menu_insert_item_value(menu, "Auth Mode", temp, NULL, (void*)ACTION_AUTH_MODE, -1);
 
-    memset(temp, 0, sizeof(temp)); // don't display the password
+    // Show a placeholder so the user can tell whether a password is stored, without revealing it.
     ESP_LOGI(TAG, "password: <redacted>");
-    menu_insert_item_value(menu, "Password", temp, NULL, (void*)ACTION_PASSWORD, -1);
+    const char* password_display = (settings->password[0] != '\0') ? "********" : "";
+    menu_insert_item_value(menu, "Password", password_display, NULL, (void*)ACTION_PASSWORD, -1);
 
     if (previous_position >= menu_get_length(menu)) {
         previous_position = menu_get_length(menu) - 1;
@@ -245,15 +246,20 @@ static void edit_username(pax_buf_t* buffer, gui_theme_t* theme, menu_t* menu, s
 static void edit_password(pax_buf_t* buffer, gui_theme_t* theme, menu_t* menu, ssh_settings_t* settings) {
     char temp[129] = {0};
     bool accepted  = false;
-    memset(temp, 0, sizeof(temp)); // don't display the password
-    ESP_LOGI(TAG, "fetched password: %s", settings->password);
+    // Pre-fill the editor with the existing password so the user can verify and modify it,
+    // matching the behaviour of the other edit_* functions.
+    memcpy(temp, settings->password, sizeof(settings->password));
 
     menu_textedit(buffer, theme, "Password", temp, sizeof(settings->password) + 1, true, &accepted);
     if (accepted) {
+        memset(settings->password, 0, sizeof(settings->password));
         memcpy(settings->password, temp, sizeof(settings->password));
         ESP_LOGI(TAG, "updated password: <redacted>");
-        menu_set_value(menu, 4, temp);
+        // Menu value is a placeholder so the password isn't displayed in plain text in the menu.
+        menu_set_value(menu, 4, (settings->password[0] != '\0') ? "********" : "");
     }
+    // Wipe the local copy of the password from the stack.
+    memset(temp, 0, sizeof(temp));
 }
 
 bool menu_ssh_edit(pax_buf_t* buffer, gui_theme_t* theme, uint8_t index, bool new_entry) {
