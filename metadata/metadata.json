@@ -17,7 +17,6 @@
       "type": "appfs",
       "executable": "tanmatsu-ssh.bin",
       "assets": [
-        {"source_file": "tanmatsu-ssh.bin", "target_file": "tanmatsu-ssh.bin"}
       ]
     }
   ]
